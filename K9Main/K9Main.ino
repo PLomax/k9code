@@ -1,4 +1,13 @@
 #include <Wire.h> 
+/*
+ * K9 Main
+ * 
+ * Version 1.1
+ * 
+ * 
+ */
+
+#define VERSION "1.1"
 
 // connect motor controller pins to Arduino digital pins
 // motor one
@@ -23,13 +32,25 @@ int digEyes     = 28;
 
 //laser settings
 int digLaserServoPin = 30;
-int digLaserWireMasterAddress = 3;
-int digLaserWireSlaveAddress = 4;
+int digLaserWireMasterAddress = 8;
+int digLaserWireSlaveAddress = 9;
+int digCtrlPanelWireSlaveAddress = 10;
+
 
 const int LASERIN = 97;
 const int LASEROUT = 98;
 
 bool laserOnFlag = false;
+
+//Sound by Wire settings
+
+#define Wirecmd1  49 //good dog
+#define Wirecmd2  50 //k9
+#define Wirecmd3  51 //remember sarah jane
+#define Wirecmd4  52  //where is the doctor
+#define Wirecmd5  53  //Are you smart
+#define Wirecmd6  54  //play I am k9
+
 
 //general settings
 int received=0;
@@ -56,22 +77,18 @@ void setup()
   digitalWrite(digLaserLED, LOW); //set laser LED off
   digitalWrite(digEyes, LOW); //turn on eyes
 
-  //laser servo
-//  laserServo.attach(digLaserServoPin);  // attaches the servo on pin digServoPin to the servo object 
-//  laserServo.write(laserServoPosn);
-//  //     laserServo.attach(digLaserServoPin);  // attaches the servo on pin digServoPin to the servo object 
-//  delay(1000);
-//  laserServo.write(0);
-//  laserServo.write(laserServoPosn);
-//  delay(1000);
-
-Wire.begin(digLaserWireMasterAddress);// join i2c bus with address
+  //IC2 Wire settings
+  Wire.begin(digLaserWireMasterAddress);// join i2c bus with address
   Wire.onRequest(requestEvent); // register event
+ // Wire.onReceive(receiveEvent);
 
   
   //general controls
   Serial.begin(9600); //set baud rate
   Serial.println("commenced");
+
+  menu();
+  //transmitWireSound(Wirecmd6); // play I am k9 via wire
 }
 
 void forward()
@@ -183,9 +200,15 @@ void requestEvent() {
 // as expected by master
 }
 
+void receiveEvent()
+{
+  
+}
+
 
 void loop()
 {
+
   delay(loopDelay);
   received=0;
   Serial.println("reading");
@@ -196,8 +219,6 @@ void loop()
     Serial.println(received);
   }
 
-
- Serial.println(received);
   switch (received) {
     case 1://forward
       Serial.println("1:forward");
@@ -247,11 +268,9 @@ void loop()
       //stopped();
       break;
     
-    case 8:
+    case 8: //tail
       Serial.println("8:tail");
-	  digitalWrite(digTail, HIGH);
-	  delay(2000);
-	  digitalWrite(digTail, LOW);
+      moveTail();
     break;
 
     case 9://stop
@@ -260,42 +279,129 @@ void loop()
       //delay(500);
       break;    
       
-    case 10:
-      Serial.println("10:ears");
-	  digitalWrite(digEars, HIGH);
-	  delay(2000);
-	  digitalWrite(digEars, LOW);
+    case 10: //ears
+    Serial.println("10:ears");
+    moveEars();
     break;
 
       
-    case 11:
+    case 11: //display
       Serial.println("11:display");
     break;
           
-    case 12:
+    case 12: //laser Out
      Serial.println("12:Laser Out");
-     digitalWrite(digLaserLED, HIGH); // Turn on LED
-     Wire.beginTransmission(digLaserWireSlaveAddress); // transmit to device #9
-     Wire.write(LASEROUT);              // sends x 
-     Wire.endTransmission();    // stop transmitting
-     Serial.println("gun out");
-     delay(500);
-    break;
+     laserOut();
+     break;
 
           
-    case 13:
+    case 13: //laser In
      Serial.println("13:Laser In");
+     laserIn();
+     break;
+          
+    case 14:  //Laser On Off: Note: this is actually switching relay
+      Serial.println("14:Laser On Off");
+      laserOnOff();
+      break;
+
+    case 30://Affirmative
+      transmitWireSound(30);
+      break;
+
+    case 31://Negative
+      transmitWireSound(31);
+      break;
+
+   case 32://Master
+      transmitWireSound(32);
+      break;
+  
+  case 33://Mistress
+      transmitWireSound(33);
+      break;
+
+    case 34:// no available data
+      transmitWireSound(34);
+      break;
+
+   case 35: //ill be good
+      transmitWireSound(35);
+      break;  
+
+
+    case 36://Doctor last spoke
+      transmitWireSound(36);
+      break;
+
+   case 37://Efficient Machine
+      transmitWireSound(37);
+      break;  
+
+
+    case 38:// iamk9M3
+      transmitWireSound(38);
+      break;
+
+    case 39: // naturally
+      transmitWireSound(39);
+      break;
+
+
+              
+  }
+
+stopped();
+}
+
+void moveEars()
+{
+
+   digitalWrite(digEars, HIGH);
+   //transmitWireSound(56);
+   transmitWireCtrlPanel(98);
+   delay(2000);
+   digitalWrite(digEars, LOW); 
+
+}
+
+void moveTail()
+{
+    Serial.println("8:tail");
+    digitalWrite(digTail, HIGH);
+    //transmitWireSound(57);
+    transmitWireCtrlPanel(99);
+    delay(2000);
+    digitalWrite(digTail, LOW);
+     Serial.println("8:tail-done");
+
+}
+
+void laserIn()
+{
      digitalWrite(digLaserLED, LOW); // turn off LED
      Wire.beginTransmission(digLaserWireSlaveAddress); // transmit to device #9
      Wire.write(LASERIN);              // sends y
      Wire.endTransmission();    // stop transmitting
-     Serial.println("gun in");	
+     Serial.println("gun in");  
      delay(500);  
-	  
-    break;
-          
-    case 14:  //Note: this is actually switching relay
-      Serial.println("14:Laser On Off");
+}
+
+void laserOut()
+{
+     digitalWrite(digLaserLED, HIGH); // Turn on LED
+     transmitWireCtrlPanel(97);
+     Wire.beginTransmission(digLaserWireSlaveAddress); // transmit to device #9
+     Wire.write(LASEROUT);              // sends x 
+     Wire.endTransmission();    // stop transmitting
+     Serial.println("gun out");
+     delay(2000);
+     digitalWrite(digLaserLED, LOW); // turn off LED
+}
+
+
+void laserOnOff()
+{
       if(laserOnFlag == true)
       {
          //turn off laser led
@@ -308,88 +414,56 @@ void loop()
         laserOnFlag = true;
         digitalWrite(digLaserLED, HIGH);  
       }
-    break;
-  }
-
-stopped();
-//laserServo.detach(); 
-//  forward();
-//  stopped();
-//  
-//  leftForward();
-//  stopped();
-//  
-//  rightForward();
-//  stopped();
-//    
-//  reverse();
-//  stopped();
-//
-//  leftReverse();
-//  stopped();
-//  
-//  rightReverse();
-//  stopped();
 }
 
 
 
+void eyesOn()
+{
+  
+}
 
-//void demoOne()
-//{
-//  // this function will run the motors in both directions at a fixed speed
-//  // turn on motor A
-// // digitalWrite(in1, HIGH);
-//  //digitalWrite(in2, LOW);
-//  // set speed to 200 out of possible range 0~255
-//  analogWrite(enA, 200);
-//  // turn on motor B
-// // digitalWrite(in3, HIGH);
-// // digitalWrite(in4, LOW);
-//  // set speed to 200 out of possible range 0~255
-//  analogWrite(enB, 200);
-//  delay(4000);
-//  stopped();
-//  // now change motor directions
-//  digitalWrite(in1, LOW);
-//  digitalWrite(in2, HIGH);  
-//  digitalWrite(in3, LOW);
-//  digitalWrite(in4, HIGH); 
-//  delay(2000);
-//  // now turn off motors
-//  digitalWrite(in1, LOW);
-//  digitalWrite(in2, LOW);  
-//  digitalWrite(in3, LOW);
-//  digitalWrite(in4, LOW);
-//}
-//void demoTwo()
-//{
-//  // this function will run the motors across the range of possible speeds
-//  // note that maximum speed is determined by the motor itself and the operating voltage
-//  // the PWM values sent by analogWrite() are fractions of the maximum speed possible 
-//  // by your hardware
-//  // turn on motors
-//  digitalWrite(in1, LOW);
-//  digitalWrite(in2, HIGH);  
-//  digitalWrite(in3, LOW);
-//  digitalWrite(in4, HIGH); 
-//  // accelerate from zero to maximum speed
-//  for (int i = 0; i < 256; i++)
-//  {
-//    analogWrite(enA, i);
-//    analogWrite(enB, i);
-//    delay(20);
-//  } 
-//  // decelerate from maximum speed to zero
-//  for (int i = 255; i >= 0; --i)
-//  {
-//    analogWrite(enA, i);
-//    analogWrite(enB, i);
-//    delay(20);
-//  } 
-//  // now turn off motors
-//  digitalWrite(in1, LOW);
-//  digitalWrite(in2, LOW);  
-//  digitalWrite(in3, LOW);
-//  digitalWrite(in4, LOW);  
-//}
+void eyesOff()
+{
+  
+}
+
+
+
+void transmitWireSound(int cmdId)
+{
+   Serial.print("begin trans..");
+   Wire.beginTransmission(digLaserWireSlaveAddress);
+   Serial.print("wire writing..");
+   Wire.write(cmdId); 
+   Serial.print("ending transmission..");             
+   Wire.endTransmission();    // stop transmitting 
+   Serial.println("sent..");
+  
+}
+
+void transmitWireCtrlPanel(int cmdId)
+{
+   Serial.print("sending..");
+   Serial.print(cmdId); 
+    Serial.print(" on slave..");
+
+   Serial.print( digCtrlPanelWireSlaveAddress);
+   Wire.beginTransmission(digCtrlPanelWireSlaveAddress);
+   Wire.write(cmdId);    
+   Serial.println("sent..");          
+   Wire.endTransmission();    // stop transmitting 
+   Serial.println("end Transmission..");    
+  
+}
+
+void menu()
+{
+  Serial.println("************"); 
+  Serial.println("K9 Main"); 
+  Serial.print("Version:");
+  Serial.println(VERSION);
+  Serial.println("************");   
+}
+
+
