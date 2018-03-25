@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:minWidth="25px"
+    android:minHeight="25px"
+    android:background="@drawable/background">
+    <TableLayout
+        android:minWidth="25px"
+        android:minHeight="25px"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tblConnection">
+        <TableRow
+            android:id="@+id/rwFunctionControls3"
+            android:gravity="center_horizontal"
+            android:paddingTop="25dp"
+            android:paddingLeft="100dp">
+            <Button
+                android:height="5dp"
+                android:text="Connect"
+                android:layout_column="0"
+                android:id="@+id/btConnect"
+                android:layout_gravity="center_horizontal"
+                android:textColor="@android:color/white"
+                android:background="@drawable/greenbutton"
+                android:padding="5dp" />
+            <Button
+                android:text="Disconnect"
+                android:layout_column="1"
+                android:id="@+id/btDisconnect"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/redbutton"
+                android:layout_margin="5dp"
+                android:padding="10dp" />
+            <Button
+                android:text="Diagnostic"
+                android:layout_column="2"
+                android:id="@+id/btDiagnostic"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/orangebutton"
+                android:padding="5dp" />
+            <TextView
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:gravity="center_horizontal"
+                android:layout_column="3"
+                android:id="@+id/txInfo"
+                android:minWidth="100dp"
+                android:backgroundTint="#00000000"
+                android:backgroundTintMode="src_over"
+                android:background="@android:color/holo_purple"
+                android:width="250dp"
+                android:layout_marginLeft="20dp" />
+        </TableRow>
+    </TableLayout>
+    <TableLayout
+        android:minWidth="25px"
+        android:minHeight="25px"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tableLayout1">
+        <TableRow
+            android:id="@+id/tableRow2"
+            android:layout_width="match_parent"
+            android:minWidth="25px"
+            android:minHeight="25px"
+            android:layout_marginTop="0dp"
+            android:gravity="right">
+            <TableLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/tblSoundControls"
+                android:visibility="visible"
+                android:layout_column="0">
+                <TableRow
+                    android:id="@+id/rwFunctionControls1"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="1.0dp">
+                    <Button
+                        android:text="Ears"
+                        android:layout_column="0"
+                        android:id="@+id/btEars"
+                        android:background="@drawable/ears" />
+                    <Button
+                        android:text="Tail"
+                        android:layout_column="1"
+                        android:id="@+id/btTail"
+                        android:background="@drawable/tail2"
+                        android:layout_marginLeft="10dp" />
+                </TableRow>
+                <TableRow
+                    android:id="@+id/rwFunctionControls2"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="10.0dp">
+                    <Button
+                        android:text="Laser Out"
+                        android:layout_column="0"
+                        android:id="@+id/btLaserOut"
+                        android:background="@drawable/laserOut" />
+                    <Button
+                        android:text="Laser In"
+                        android:layout_column="1"
+                        android:id="@+id/btLaserIn"
+                        android:background="@drawable/laserIn"
+                        android:layout_marginLeft="10dp" />
+                </TableRow>
+                <TableRow
+                    android:id="@+id/rwFunctionControls3"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="10.0dp">
+                    <Button
+                        android:text="On / Off"
+                        android:layout_column="0"
+                        android:id="@+id/btEyesToggle"
+                        android:background="@drawable/eyes" />
+                    <Button
+                        android:text="Flash"
+                        android:layout_column="1"
+                        android:id="@+id/btEyesFlash"
+                        android:background="@drawable/eyesFlash"
+                        android:layout_marginLeft="10dp" />
+                </TableRow>
+                <TableRow
+                    android:id="@+id/rwFunctionControls4"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="10.0dp">
+                    <Button
+                        android:text="Laser On Off"
+                        android:layout_column="0"
+                        android:id="@+id/btLaserOnOff"
+                        android:background="@drawable/laserFiring" />
+                    <Button
+                        android:text="Send Test"
+                        android:layout_column="1"
+                        android:id="@+id/btSendTest"
+                        android:contextClickable="true" />
+                </TableRow>
+            </TableLayout>
+            <TableLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/tblSoundControls"
+                android:visibility="visible"
+                android:layout_column="1">
+                <TableRow
+                    android:id="@+id/rwSound1"
+                    android:gravity="center_horizontal">
+                    <Button
+                        android:text="Master"
+                        android:layout_column="0"
+                        android:id="@+id/btMaster"
+                        android:paddingRight="1sp"
+                        android:backgroundTint="#ff0000ff" />
+                    <Button
+                        android:text="Mistress"
+                        android:layout_column="1"
+                        android:id="@+id/btMistress"
+                        android:backgroundTint="#ffffff00" />
+                </TableRow>
+                <TableRow
+                    android:id="@+id/rwSound2"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="5sp">
+                    <Button
+                        android:text="Affirmative"
+                        android:layout_column="0"
+                        android:id="@+id/btAffirmative"
+                        android:backgroundTint="#ff9acd32" />
+                    <Button
+                        android:text="Negative"
+                        android:layout_column="1"
+                        android:id="@+id/btNegative"
+                        android:backgroundTint="#ffff0000" />
+                </TableRow>
+                <TableRow
+                    android:id="@+id/rwSound3"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="5sp">
+                    <Button
+                        android:text="No Data"
+                        android:layout_column="0"
+                        android:id="@+id/btNoData"
+                        android:paddingRight="1sp"
+                        android:backgroundTint="#ff0000ff"
+                        android:foregroundTint="#fff5f5f5" />
+                    <Button
+                        android:text="Ill be good"
+                        android:layout_column="1"
+                        android:id="@+id/btBeGood"
+                        android:backgroundTint="#ffffff00" />
+                </TableRow>
+                <TableRow
+                    android:id="@+id/rwSound4"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="5sp">
+                    <Button
+                        android:text="Eff.Machine"
+                        android:layout_column="0"
+                        android:id="@+id/btEfficientMachine"
+                        android:backgroundTint="#ff9acd32" />
+                    <Button
+                        android:text="1978"
+                        android:layout_column="1"
+                        android:id="@+id/bt1978"
+                        android:backgroundTint="#ff0000ff"
+                        android:foregroundTint="#fff5f5f5" />
+                </TableRow>
+                <TableRow
+                    android:id="@+id/rwSound5"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="5sp">
+                    <Button
+                        android:text="Naturally"
+                        android:layout_column="0"
+                        android:id="@+id/btNaturally"
+                        android:paddingRight="1sp"
+                        android:backgroundTint="#ff0000ff"
+                        android:foregroundTint="#fff5f5f5" />
+                    <Button
+                        android:text="K9 M3"
+                        android:id="@+id/btIAmK9"
+                        android:backgroundTint="#ffff0000" />
+                </TableRow>
+            </TableLayout>
+            <ImageView
+                android:src="@drawable/target4"
+                android:id="@+id/imgTarget"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="0.0dp"
+                android:layout_column="2"
+                android:layout_gravity="right"
+                android:paddingRight="10dp"
+                android:paddingLeft="10dp" />
+        </TableRow>
+    </TableLayout>
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+        <EditText
+            android:id="@+id/editText"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#ff9400d3"
+            android:backgroundTintMode="src_over"
+            android:background="@android:color/holo_purple" />
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#00000000" />
+    </LinearLayout>
+</LinearLayout>
