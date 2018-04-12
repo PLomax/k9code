@@ -10,25 +10,26 @@
  * Created 19-2-2018
  */
 
-#define VERSION "1.3"
+#define VERSION "1.4"
 
 // connect motor controller pins to Arduino digital pins
 // drive motor 
-int enA = 10;
-int in1 = 9;
-int in2 = 8;
+int enA = 5;
+int in1 = 7;
+int in2 = 6;
 
 int motorSpeed = 255;
+int motorSpeedMultiplier = 28;
 //int motorSpeedHalf = motorSpeed/2;
 
 //Servo
 Servo steeringServo;
-int servoPin = 7;
+int servoPin = 19;
 
 // RELAY Settings
-int digLaserLED = 22;
-int digEars     = 24;
-int digTail     = 26;
+int digLaserLED = 22;//white
+int digEars     = 24;//brown
+int digTail     = 26;//red
 int digEyes     = 28;
 
 
@@ -46,8 +47,8 @@ long received=0;
 String lastReceived = "";
 String receivedStr ="";
 
-int delayTime =200;
-int loopDelay = 700;
+int delayTime =10;
+int loopDelay = 400;
 
 
 void setup()
@@ -76,6 +77,7 @@ void setup()
   
   //general controls
   Serial.begin(9600); //set baud rate
+  Serial.setTimeout(500);
   Serial.println("commenced");
 
   menu(); //show menu
@@ -133,7 +135,7 @@ void stopDriveMotor()
   // now turn off drive motor
   digitalWrite(in1, LOW);
   digitalWrite(in2, LOW);  
- // delay(500);
+;
 }
 
 
@@ -156,20 +158,21 @@ void loop()
   int ordinal =0;
   String commandStr ="";
   delay(loopDelay);
-  Serial.println(".");
+  Serial.print(".");
   if (Serial.available() > 0)
   {
 	receivedStr = Serial.readString();
-  if(lastReceived == receivedStr)
-  {
-    return; // do nothing & exit loop
+  
+//  if(lastReceived == receivedStr)
+//  {
+//    return; // do nothing & exit loop
+//
+//  }
+//  else
+//  {
+//    lastReceived = receivedStr;
+//  }
 
-  }
-  else
-  {
-    lastReceived = receivedStr;
-  }
-  stringSplitter(receivedStr);
   
 	Serial.print("read: ");
 	Serial.println(receivedStr);
@@ -177,24 +180,33 @@ void loop()
   ordinal = receivedStr.indexOf('~');
   while(ordinal > 0) //while there is a valid command to process
   {
-      String newCommand =  receivedStr.substring(0,ordinal);
+      String newCommandStr =  receivedStr.substring(0,ordinal);
+      int newCommand = newCommandStr.toInt();
+      
       receivedStr = receivedStr.substring(ordinal+1);
  
       ordinal = receivedStr.indexOf('~');
-           
-      if(newCommand != commandStr) //only do it once per group
+    
+      if((newCommandStr != commandStr) || (newCommand < 100)) //only do it once per group for moves
       {
         
         commandStr = newCommand;
-        received = newCommand.toInt();
+        received = newCommand;
 
     	 switch (received) {
-    		case 2: //tail
+    		case 2: //btConnect
     		{
-    		  Serial.println("8:tail");
-    		  moveTail();
+    		  Serial.println("2:Connect");
+    		  btConnect();
     		  break;
     		}
+
+        case 3: //tail
+        {
+          Serial.println("3:tail");
+          moveTail();
+          break;
+        }
     
     		  
     		case 4: //ears
@@ -240,7 +252,6 @@ void loop()
     		case 16:
     		{
     			flashEyes();
-    			digitalWrite(digEyes, LOW); //turn them on if off
     			break;
     		}
     
@@ -254,6 +265,7 @@ void loop()
     		case 37://Efficient Machine
     		case 38:// iamk9M3
     		case 39: // naturally
+        case 40://goodbye
     		{
     			transmitWireSoundLaser(received);
     			break;
@@ -286,38 +298,164 @@ void motion(int value)
   //turn value is 10s
   //LEFT should only be values up to 40 multiples of 10 (10,20,30,40)
   //RIGHT should only be values over  multiples of 10   (50,60,70,80)
+
+  Serial.print("Value:");
+  Serial.println(value);
   
-  int steeringPosn = 0;
+  int steeringPosn = 5;
   if(value >=100 && value < 200)
   {
     //stop
     stopDriveMotor();
-    steeringPosn = (value -100)/10;
-    steeringServo.write(steeringPosn); 
+    steeringServo.write(90); //centre
+    Serial.println("Centre stop");
   }
+ 
   if(value >=200 && value < 300)
   {
     //reverse
     steeringPosn = (value - 200)/10;
-    int speedOrd = (value - 200) - steeringPosn;
-    motorSpeed = 25.5 * speedOrd; //255 = max speed
+    int speedOrd = (value - 200) - (steeringPosn *10);
+    
+    Serial.print("ordinal:");
+    Serial.println(speedOrd);
+    Serial.print("position:");
+    Serial.println(steeringPosn);
+    
+    motorSpeed = motorSpeedMultiplier * speedOrd; //255 = max speed
+    Serial.print("motorSpeed:");
+    Serial.println(motorSpeed);
+    
     reverse();
-    steeringServo.write(steeringPosn); 
+    switch(steeringPosn)
+    {
+        case 1:
+        case 2:
+            {
+              steeringServo.write(30); 
+            break;}
+
+        case 3:
+             {
+            steeringServo.write(50); 
+            break;}
+            
+        case 4:
+            {
+            steeringServo.write(70); 
+            break;}
+        
+        case 5:
+        case 0:
+
+            {
+              steeringServo.write(90); 
+            break;}      
+
+        case 6:
+             {
+              steeringServo.write(100); 
+            break;} 
+            
+        case 7:
+            {
+              steeringServo.write(110); 
+            break;} 
+
+        case 8:
+            {
+             steeringServo.write(125);  
+            break;} 
+        
+        case 9:
+            {
+             steeringServo.write(140);  
+            break;}                        
+    }
+
+    
+    
   }
 
   if(value >=300 && value < 400)
   {
     //forward
     steeringPosn = (value -300)/10;
-    int speedOrd = (value - 200) - steeringPosn;
-    motorSpeed = 25.5 * speedOrd; //255 = max speed
+   
+    int speedOrd = (value - 300) - (steeringPosn *10);
+
+    Serial.print("ordinal:");
+    Serial.println(speedOrd);
+    Serial.print("position:");
+    Serial.println(steeringPosn);
+    
+    motorSpeed = motorSpeedMultiplier * speedOrd; //255 = max speed
+    Serial.print("motorSpeed:");
+    Serial.println(motorSpeed);
+
+    
     forward();
-    steeringServo.write(steeringPosn); 
+    switch(steeringPosn)
+    {
+        case 1:
+        case 2:
+            {
+              steeringServo.write(30); 
+            break;}
+
+        case 3:
+             {
+            steeringServo.write(50); 
+            break;}
+            
+        case 4:
+            {
+            steeringServo.write(70); 
+            break;}
+        
+        case 5:
+        case 0:
+
+            {
+              steeringServo.write(90); 
+            break;}      
+
+        case 6:
+             {
+              steeringServo.write(100); 
+            break;} 
+            
+        case 7:
+            {
+              steeringServo.write(110); 
+            break;} 
+
+        case 8:
+            {
+             steeringServo.write(125);  
+            break;} 
+        
+        case 9:
+            {
+             steeringServo.write(140);  
+            break;}                        
+    }
+
   }
 
-  steeringServo.write(steeringPosn); 
+//  steeringServo.write(steeringPosn); 
 }
 
+void btConnect()
+{
+  Serial.println("BT Connected");
+  flashEyes();  
+  digitalWrite(digEyes, LOW); //turn them on if off
+  moveEars();
+  transmitWireSoundLaser(32);
+  
+  
+}
 
 void moveEars()
 {
@@ -330,13 +468,13 @@ void moveEars()
 
 void moveTail()
 {
-    Serial.println("8:tail");
+    Serial.println("tail");
     digitalWrite(digTail, HIGH); //start wagging
     //transmitWireSoundLaser(57);
     transmitWireCtrlPanel(99); //flash control panel lights
     delay(2000);
     digitalWrite(digTail, LOW); //stop wagging
-     Serial.println("8:tail-done");
+    Serial.println("tail-done");
 
 }
 
@@ -378,19 +516,27 @@ void laserOnOff()
 
 void toggleEyes()
 {	//this is a 'normally closed' circuit
-      if(digitalRead(digEyes) == HIGH)
+   if(digitalRead(digEyes) == HIGH)
+   {
 		digitalWrite(digEyes, LOW); 
+    Serial.println("eyes off");
+   }
 	 else
+  {
 		digitalWrite(digEyes, HIGH); //open circuit (power the relay)
+    Serial.println("eyes on");
+  }
 }
 
 void flashEyes()
 	{
-		for(int i=0; i < 4;i++)
+		for(int i=0; i <= 4;i++)
 			{
 			toggleEyes();
-			delay(300);
+			delay(200);
 			}
+
+      digitalWrite(digEyes, LOW); //turn them on if off
 	}
 
 
@@ -432,65 +578,4 @@ void menu()
 }
 
 
-/*
-void rightForward()
-{
-  // turn on motor A
-  digitalWrite(in1, HIGH);
-  digitalWrite(in2, LOW);
-  // set speed to 200 out of possible range 0~255
-  analogWrite(enA, motorSpeed);
-//  // turn on motor B
-//  digitalWrite(in3, HIGH);
-//  digitalWrite(in4, LOW);
-//  // set speed to 200 out of possible range 0~255
-//  analogWrite(enB, motorSpeed);
-  delay(delayTime);
-  }
 
-void leftForward()
-{
-//  // turn on motor A
-//  digitalWrite(in1, HIGH);
-//  digitalWrite(in2, LOW);
-//  // set speed to 200 out of possible range 0~255
-//  analogWrite(enA, motorSpeed);
-  // turn on motor B
-  digitalWrite(in3, HIGH);
-  digitalWrite(in4, LOW);
-  // set speed to 200 out of possible range 0~255
-  analogWrite(enB, motorSpeed);
-  delay(delayTime);
-  }
-  
-  
-void leftReverse()
-{
-//  // now change motor directions
-//  digitalWrite(in1, LOW);
-//  digitalWrite(in2, HIGH);  
-//    // set speed to 200 out of possible range 0~255
-//  analogWrite(enA, motorSpeedHalf);
-  digitalWrite(in3, LOW);
-  digitalWrite(in4, HIGH); 
-    // set speed to 200 out of possible range 0~255
-  analogWrite(enB, motorSpeed);
-   delay(delayTime);
-  }
-
-void rightReverse()
-{
-  // now change motor directions
-  digitalWrite(in1, LOW);
-  digitalWrite(in2, HIGH);  
-    // set speed to 200 out of possible range 0~255
-  analogWrite(enA, motorSpeed);
-//  digitalWrite(in3, LOW);
-//  digitalWrite(in4, HIGH); 
-//    // set speed to 200 out of possible range 0~255
-//  analogWrite(enB, motorSpeed);
-  delay(delayTime);
-  }
-  
-  
-*/
