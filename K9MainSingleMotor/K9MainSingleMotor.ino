@@ -4,13 +4,14 @@
 /*
  * K9 Main
  * 
- * Version 1.3
+ * Version 1.5
  * 
  * Single scooter motor version
  * Created 19-2-2018
+ * Updated 12-4-2018
  */
 
-#define VERSION "1.4"
+#define VERSION "1.5"
 
 // connect motor controller pins to Arduino digital pins
 // drive motor 
@@ -19,8 +20,6 @@ int in1 = 7;
 int in2 = 6;
 
 int motorSpeed = 255;
-int motorSpeedMultiplier = 28;
-//int motorSpeedHalf = motorSpeed/2;
 
 //Servo
 Servo steeringServo;
@@ -43,12 +42,11 @@ const int LASERIN = 97;
 const int LASEROUT = 98;
 
 //general settings
-long received=0;
-String lastReceived = "";
-String receivedStr ="";
+int received=0;
+int lastCmd=0;
 
-int delayTime =10;
-int loopDelay = 400;
+int delayTime =0;
+int loopDelay = 000;
 
 
 void setup()
@@ -93,7 +91,7 @@ void forward()
     if(digitalRead(in1) == LOW && digitalRead(in2) == HIGH)
     {
   	stopDriveMotor(); //brake if running first before changing direction
-  	delay(100);
+  	delay(10);
     }
   
     // turn on drive motor
@@ -116,7 +114,7 @@ void reverse()
   if(digitalRead(in1) == HIGH && digitalRead(in2) == LOW)
     {
   	stopDriveMotor();//brake if running first before changing direction
-  	delay(100);
+  	delay(10);
     }
   
    // turn on drive motor - change motor directions
@@ -155,45 +153,27 @@ void receiveEvent()
 void loop()
 {
 
-  int ordinal =0;
-  String commandStr ="";
+
   delay(loopDelay);
-  Serial.print(".");
+  //Serial.print(".");
+  
+  
   if (Serial.available() > 0)
   {
-	receivedStr = Serial.readString();
-  
-//  if(lastReceived == receivedStr)
-//  {
-//    return; // do nothing & exit loop
-//
-//  }
-//  else
-//  {
-//    lastReceived = receivedStr;
-//  }
-
-  
-	Serial.print("read: ");
-	Serial.println(receivedStr);
-
-  ordinal = receivedStr.indexOf('~');
-  while(ordinal > 0) //while there is a valid command to process
-  {
-      String newCommandStr =  receivedStr.substring(0,ordinal);
-      int newCommand = newCommandStr.toInt();
-      
-      receivedStr = receivedStr.substring(ordinal+1);
- 
-      ordinal = receivedStr.indexOf('~');
-    
-      if((newCommandStr != commandStr) || (newCommand < 100)) //only do it once per group for moves
+  	  received = Serial.read();
+      if(received == lastCmd)
       {
-        
-        commandStr = newCommand;
-        received = newCommand;
+         return;
+      }
+    
+      if(received > 99) // only do this for movement commands
+        lastCmd = received;
 
-    	 switch (received) {
+  
+    	Serial.print("read: ");
+    	Serial.println(received);
+
+    	switch (received) {
     		case 2: //btConnect
     		{
     		  Serial.println("2:Connect");
@@ -273,7 +253,7 @@ void loop()
     
     		default:
     		{
-    			if(received >=99 && received < 400) //direction and angle values
+    			if(received > 99 && received < 200) //direction and angle values
     			  {
               motion(received);
     				}
@@ -287,164 +267,83 @@ void loop()
     		
     	  }
   }
-  } // end of while loop
-	}
+
 
  
 void motion(int value)
 {
-  //direction is hundreds
-  //direction speed is units
-  //turn value is 10s
-  //LEFT should only be values up to 40 multiples of 10 (10,20,30,40)
-  //RIGHT should only be values over  multiples of 10   (50,60,70,80)
+  if(value > 200) //failsafe
+    return;
+    
+  if(value == 100)
+  {
+    stopDriveMotor();  
+  }
+  else
+  {
+        Serial.print("\nmovement cmd:" );
+        Serial.println(value);  
+    
+        int trajectory = (value - 100) / 10;
+        int direct  = (value -100) - (trajectory *10);
+        delay(100);
+    
+        Serial.print("trajectory:" );
+        Serial.println(trajectory); 
+        
+        Serial.print("direction:" );
+        Serial.println(direct); 
+    
+        switch(direct)
+        {
+            case 0:
+            {
+              Serial.println("stop"); // do nothing
+              break;}
+            
+            case 1:
+            {
+              Serial.println("fwd");
+              forward();
+              break;}
+    
+            case 2:
+            {
+              reverse();
+              Serial.println("rev");          
+              break;}      
+      
+      }
+          
 
-  Serial.print("Value:");
-  Serial.println(value);
+     switch(trajectory)
+    {
+        case 0:
+        {
+          Serial.println("centre");
+          steeringServo.write(90); //centre
+          break;}
+        
+        case 1:
+        {
+          Serial.println("left");
+          steeringServo.write(30);
+          break;}
+
+        case 2:
+        {
+          Serial.println("right");  
+          steeringServo.write(140);        
+          break;}      
+      
+      }    
+  }
+
   
-  int steeringPosn = 5;
-  if(value >=100 && value < 200)
-  {
-    //stop
-    stopDriveMotor();
-    steeringServo.write(90); //centre
-    Serial.println("Centre stop");
-  }
- 
-  if(value >=200 && value < 300)
-  {
-    //reverse
-    steeringPosn = (value - 200)/10;
-    int speedOrd = (value - 200) - (steeringPosn *10);
-    
-    Serial.print("ordinal:");
-    Serial.println(speedOrd);
-    Serial.print("position:");
-    Serial.println(steeringPosn);
-    
-    motorSpeed = motorSpeedMultiplier * speedOrd; //255 = max speed
-    Serial.print("motorSpeed:");
-    Serial.println(motorSpeed);
-    
-    reverse();
-    switch(steeringPosn)
-    {
-        case 1:
-        case 2:
-            {
-              steeringServo.write(30); 
-            break;}
-
-        case 3:
-             {
-            steeringServo.write(50); 
-            break;}
-            
-        case 4:
-            {
-            steeringServo.write(70); 
-            break;}
-        
-        case 5:
-        case 0:
-
-            {
-              steeringServo.write(90); 
-            break;}      
-
-        case 6:
-             {
-              steeringServo.write(100); 
-            break;} 
-            
-        case 7:
-            {
-              steeringServo.write(110); 
-            break;} 
-
-        case 8:
-            {
-             steeringServo.write(125);  
-            break;} 
-        
-        case 9:
-            {
-             steeringServo.write(140);  
-            break;}                        
-    }
-
-    
-    
-  }
-
-  if(value >=300 && value < 400)
-  {
-    //forward
-    steeringPosn = (value -300)/10;
-   
-    int speedOrd = (value - 300) - (steeringPosn *10);
-
-    Serial.print("ordinal:");
-    Serial.println(speedOrd);
-    Serial.print("position:");
-    Serial.println(steeringPosn);
-    
-    motorSpeed = motorSpeedMultiplier * speedOrd; //255 = max speed
-    Serial.print("motorSpeed:");
-    Serial.println(motorSpeed);
-
-    
-    forward();
-    switch(steeringPosn)
-    {
-        case 1:
-        case 2:
-            {
-              steeringServo.write(30); 
-            break;}
-
-        case 3:
-             {
-            steeringServo.write(50); 
-            break;}
-            
-        case 4:
-            {
-            steeringServo.write(70); 
-            break;}
-        
-        case 5:
-        case 0:
-
-            {
-              steeringServo.write(90); 
-            break;}      
-
-        case 6:
-             {
-              steeringServo.write(100); 
-            break;} 
-            
-        case 7:
-            {
-              steeringServo.write(110); 
-            break;} 
-
-        case 8:
-            {
-             steeringServo.write(125);  
-            break;} 
-        
-        case 9:
-            {
-             steeringServo.write(140);  
-            break;}                        
-    }
-
-  }
-
-//  steeringServo.write(steeringPosn); 
+                         
 }
+
+
 
 void btConnect()
 {
