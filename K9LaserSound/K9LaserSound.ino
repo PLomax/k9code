@@ -1,7 +1,7 @@
   /*
  * K9 Laser Sound
  * 
- * Version 1.0
+ * Version 1.1
  * 
  *  * Note: use pin 5 for laser servo in out
  */
@@ -68,6 +68,8 @@ char inputChar;
 #define cmd37 37 //Efficient Machine
 #define cmd38 38 // Naturally
 #define cmd39 39 // a treat
+#define cmd40 40 //bye
+#define cmd41 41 //ready Master
 
 #define newLine 10
 
@@ -180,7 +182,7 @@ void menu()
 {
    Serial.println("K9 Laser Sound");
 
-   Serial.println("Version 1.1");
+   Serial.println("Version 1.2");
 
    Serial.println("Note: use pin 5 for laser servo in out control");
 
@@ -343,6 +345,16 @@ void playSound(int inputValue)
       case cmd39: //naturly
         musicPlayer.startPlayingFile("naturly.mp3");
         break;  
+
+
+      case cmd40: //bye
+        musicPlayer.startPlayingFile("bye.mp3");
+        break;  
+
+        
+      case cmd41: //read master
+        musicPlayer.startPlayingFile("readyM.mp3");
+        break; 
       
       case newLine:
         Serial.println("and ... a new line!");

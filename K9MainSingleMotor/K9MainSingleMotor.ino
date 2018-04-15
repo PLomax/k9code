@@ -9,9 +9,11 @@
  * Single scooter motor version
  * Created 19-2-2018
  * Updated 12-4-2018
+ * 
+ * Note:  be sure to remove the tx rx before attempting upload
  */
 
-#define VERSION "1.5"
+#define VERSION "1.6"
 
 // connect motor controller pins to Arduino digital pins
 // drive motor 
@@ -21,9 +23,7 @@ int in2 = 6;
 
 int motorSpeed = 255;
 
-//Servo
-Servo steeringServo;
-int servoPin = 19;
+
 
 // RELAY Settings
 int digLaserLED = 22;//white
@@ -36,6 +36,7 @@ int digEyes     = 28;
 int wireMasterAddress = 8;
 int wireSoundLaserSlaveAddress = 9;
 int wireCtrlPanelSlaveAddress = 10;
+int wireSteeringSlaveAddress= 11;
 
 
 const int LASERIN = 97;
@@ -70,7 +71,7 @@ void setup()
   Wire.onRequest(requestEvent); // register event
  // Wire.onReceive(receiveEvent);
 
-  steeringServo.attach(servoPin); 
+//  steeringServo.attach(servoPin); 
   
   
   //general controls
@@ -315,28 +316,8 @@ void motion(int value)
       
       }
           
-
-     switch(trajectory)
-    {
-        case 0:
-        {
-          Serial.println("centre");
-          steeringServo.write(90); //centre
-          break;}
-        
-        case 1:
-        {
-          Serial.println("left");
-          steeringServo.write(30);
-          break;}
-
-        case 2:
-        {
-          Serial.println("right");  
-          steeringServo.write(140);        
-          break;}      
-      
-      }    
+      transmitWireSteering (trajectory);
+ 
   }
 
   
@@ -351,7 +332,7 @@ void btConnect()
   flashEyes();  
   digitalWrite(digEyes, LOW); //turn them on if off
   moveEars();
-  transmitWireSoundLaser(32);
+  transmitWireSoundLaser(41);
   
   
 }
@@ -456,10 +437,26 @@ void transmitWireCtrlPanel(int cmdId)
 {
    Serial.print("sending..");
    Serial.print(cmdId); 
-    Serial.print(" on slave..");
+    Serial.print(" on ctrl pnl slave..");
 
    Serial.print( wireCtrlPanelSlaveAddress);
    Wire.beginTransmission(wireCtrlPanelSlaveAddress);
+   Wire.write(cmdId);    
+   Serial.println("sent..");          
+   Wire.endTransmission();    // stop transmitting 
+   Serial.println("end Transmission..");    
+  
+}
+
+
+void transmitWireSteering(int cmdId)
+{
+   Serial.print("sending..");
+   Serial.print(cmdId); 
+   Serial.print(" on steering slave..");
+
+   Serial.print( wireSteeringSlaveAddress);
+   Wire.beginTransmission(wireSteeringSlaveAddress);
    Wire.write(cmdId);    
    Serial.println("sent..");          
    Wire.endTransmission();    // stop transmitting 
